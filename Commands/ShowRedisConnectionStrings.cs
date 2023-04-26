@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace CreatioConsoleHelper
@@ -18,9 +19,10 @@ namespace CreatioConsoleHelper
             Console.WriteLine($"Site folder: {SitesFolder}");
             XmlSerializer serializer = new XmlSerializer(typeof(ConnectionStrings));
             List<string> dirs = new List<string>(Directory.EnumerateDirectories(SitesFolder));
+            var redisConnectionStrings = new List<ConnectionStringItem>();
             foreach (var dir in dirs)
             {
-                Console.WriteLine($"- {Path.GetFileNameWithoutExtension(dir)}:");
+
                 var connectionStringPath = Path.Combine(dir, "ConnectionStrings.config");
                 if (!File.Exists(connectionStringPath))
                 {
@@ -29,15 +31,22 @@ namespace CreatioConsoleHelper
                 using (var reader = new StreamReader(connectionStringPath))
                 {
                     var connectionStrings = (ConnectionStrings)serializer.Deserialize(reader);
-
                     foreach (var connectionString in connectionStrings.Items)
                     {
                         if (connectionString.Name == "redis")
                         {
-                            Console.WriteLine($"  - {connectionString.Name}: {connectionString.ConnectionString}");
+                            connectionString.Parse();
+                            connectionString.SiteName = Path.GetFileNameWithoutExtension(dir);
+                            redisConnectionStrings.Add(connectionString);
                         }
                     }
                 }
+            }
+
+            foreach (var connectionString in redisConnectionStrings.OrderBy(it => it.RedisDb))
+            {
+                Console.WriteLine($"- {connectionString.SiteName}:");
+                Console.WriteLine($"  - {connectionString.Name}: {connectionString.ConnectionString}");
             }
         }
     }
@@ -62,7 +71,21 @@ namespace CreatioConsoleHelper
 
         [XmlAttributeAttribute("connectionString")]
         public string ConnectionString { get; set; }
+
+        [NonSerialized]
+        public int RedisDb = -1;
+        [NonSerialized]
+        public string SiteName = String.Empty;
+
+        public void Parse()
+        {
+            foreach (var item in ConnectionString.Split(";").Select(it => it.Split("=")))
+            {
+                if (item[0].Trim() == "db" && int.TryParse(item[1], out var parsed))
+                {
+                    RedisDb = parsed;
+                }
+            }
+        }
     }
-
-
 }
