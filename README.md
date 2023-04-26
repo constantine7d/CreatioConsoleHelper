@@ -14,6 +14,8 @@ Use `--onlyshow` option for test.
 .\CreatioConsoleHelper.exe renameschemas --pkgPath="[SitePath]\Terrasoft.WebApp\Terrasoft.Configuration\Pkg" --schemaPrefix="Usr"
 ```
 
+## Helpers
+
 ### Show redis connection strings
 
 ```shell
