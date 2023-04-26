@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using CreatioConsoleHelper.Commands;
 using System;
 
 namespace CreatioConsoleHelper
@@ -7,7 +8,7 @@ namespace CreatioConsoleHelper
     {
         static void Main(string[] args)
         {
-            var result = Parser.Default.ParseArguments<TestCommand, RenameSchemasCommand, ShowRedisConnectionStrings>(args)
+            var result = Parser.Default.ParseArguments<TestCommand, RenameSchemasCommand, ShowRedisConnectionStrings, ShowConnectionStrings>(args)
                 .WithParsed<ICommand>(t => t.Execute());
             if (result.Tag == ParserResultType.NotParsed)
             {
